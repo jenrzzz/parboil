@@ -32,7 +32,7 @@ module Interview
         The writer's seed for this post:
         #{idea.seed.strip}
 
-        #{graph_digest(idea)}
+        #{material_digest(idea)}#{graph_digest(idea)}
         Interview so far:
         #{transcript_digest(idea)}
 
@@ -46,10 +46,46 @@ module Interview
         The writer's seed for this post:
         #{idea.seed.strip}
 
+        #{material_digest(idea)}
         This is the very first question of the interview. Ask the one question
         that best helps the writer start talking — aimed at the heart of what
         they seem to want to say, not at logistics.
       PROMPT
+    end
+
+    # Budget per scrap and for the whole material section, so a long article
+    # can't crowd out the transcript.
+    SCRAP_CHAR_BUDGET = 1_500
+    MATERIAL_CHAR_BUDGET = 6_000
+
+    # Raw material the writer dropped in. Context for sharper questions —
+    # explicitly NOT the writer's own words, and the prompt says so, because
+    # the dogmatic rule extends here: their post is built from what THEY say,
+    # not from what they've read.
+    def material_digest(idea)
+      scraps = idea.scraps.ordered
+      return "" if scraps.empty?
+
+      remaining = MATERIAL_CHAR_BUDGET
+      entries = []
+      scraps.each do |scrap|
+        break if remaining <= 0
+
+        header = scrap.link? ? "#{scrap.display_title} (#{scrap.url})" : "pasted note: #{scrap.display_title}"
+        excerpt = scrap.body.to_s.truncate([ SCRAP_CHAR_BUDGET, remaining ].min)
+        remaining -= excerpt.length
+        entries << (excerpt.present? ? "--- #{header}\n#{excerpt}" : "--- #{header}\n(not fetched — link only)")
+      end
+
+      <<~SECTION
+        Material the writer dropped in for reference. This is OTHER PEOPLE'S
+        writing or the writer's collected notes — never attribute it to the
+        writer or treat it as their position. Use it to ask sharper questions:
+        where do they agree, disagree, or go further than this material?
+
+        #{entries.join("\n\n")}
+
+      SECTION
     end
 
     # What the graph already holds, so the interviewer pushes on gaps instead

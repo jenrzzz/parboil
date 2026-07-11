@@ -6,6 +6,7 @@ class Idea < ApplicationRecord
   # semantics — individual turns are never destroyed, but wiping the idea is.
   has_many :message_nodes, dependent: :delete_all
   has_many :idea_nodes, dependent: :destroy
+  has_many :scraps, dependent: :destroy
 
   # seeded      — captured, not yet interviewed
   # interviewing — an interview is underway

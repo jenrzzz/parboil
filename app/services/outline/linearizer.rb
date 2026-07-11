@@ -80,11 +80,16 @@ module Outline
       "## Notes\n\n" + bullet_tree(loose)
     end
 
+    # Reference nodes from the interview plus links the writer dropped in —
+    # both belong in the drafting handoff.
     def references_section
-      refs = of_type(:reference)
-      return nil if refs.empty?
+      lines = of_type(:reference).map { |r| "- #{r.body}" }
+      lines += idea.scraps.link.ordered.map do |scrap|
+        "- [#{scrap.display_title}](#{scrap.url})"
+      end
+      return nil if lines.empty?
 
-      "## References\n\n" + refs.map { |r| "- #{r.body}" }.join("\n")
+      "## References\n\n" + lines.join("\n")
     end
 
     def questions_section

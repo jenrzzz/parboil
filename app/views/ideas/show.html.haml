@@ -17,6 +17,29 @@
           - nodes.each do |node|
             %li{ class: (node.open? ? "open" : nil) }= node.body
 
+%section.scraps
+  %h2 raw material
+  - if @idea.scraps.any?
+    %ul.scrap-list
+      - @idea.scraps.ordered.each do |scrap|
+        %li
+          - if scrap.link?
+            = link_to scrap.display_title, scrap.url, target: "_blank", rel: "noopener"
+            %span.host= scrap.host
+            - if scrap.unfetched?
+              %span.unfetched link only
+          - else
+            %details
+              %summary= scrap.display_title
+              %p.scrap-body= scrap.body
+          = button_to "remove", scrap_path(scrap), method: :delete, class: "quiet", form_class: "inline"
+  %details.drop-in
+    %summary Drop something in — a link or pasted text the interview should know about
+    = form_with url: idea_scraps_path(@idea), scope: :scrap do |f|
+      = f.url_field :url, placeholder: "https:// — an article, a thread, prior art"
+      = f.text_area :body, rows: 4, placeholder: "…or paste text: a quote, your old notes, someone's take"
+      = f.submit "Add to the pot"
+
 %section.turn
   - if @idea.head_hash.blank?
     %p.coax The interview hasn't started. One question at a time; answering one is a whole session.

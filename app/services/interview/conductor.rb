@@ -50,9 +50,12 @@ module Interview
     end
 
     # Generate the next question from the current head. Public so a turn that
-    # died between answer and question can resume.
+    # died between answer and question can resume. Idempotent when a question
+    # is already pending (double-submit, stray caller): asking the model for a
+    # question right after its own unanswered question only confuses it.
     def ask_next!
       raise NotStarted if idea.head_hash.blank?
+      return idea.head if idea.head&.interviewer?
 
       question = LLM::Gateway.complete(
         role: :interviewer,

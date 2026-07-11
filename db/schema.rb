@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_11_010300) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_11_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -71,9 +71,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_010300) do
     t.index ["parent_hash"], name: "index_message_nodes_on_parent_hash"
   end
 
+  create_table "scraps", force: :cascade do |t|
+    t.text "body"
+    t.datetime "created_at", null: false
+    t.bigint "idea_id", null: false
+    t.integer "kind", default: 0, null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.string "url"
+    t.index ["idea_id", "created_at"], name: "index_scraps_on_idea_id_and_created_at"
+    t.index ["idea_id"], name: "index_scraps_on_idea_id"
+  end
+
   add_foreign_key "idea_nodes", "idea_nodes", column: "parent_id"
   add_foreign_key "idea_nodes", "ideas"
   add_foreign_key "idea_nodes", "message_nodes", column: "source_message_hash", primary_key: "content_hash", on_delete: :nullify
   add_foreign_key "message_nodes", "ideas"
   add_foreign_key "message_nodes", "message_nodes", column: "parent_hash", primary_key: "content_hash", on_delete: :nullify
+  add_foreign_key "scraps", "ideas"
 end

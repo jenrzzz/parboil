@@ -7,6 +7,9 @@ Rails.application.routes.draw do
       post :next_question   # start the interview, or resume a turn that died mid-question
       get  :outline         # linearized markdown, curl-able (the drafting handoff)
     end
+
+    # Raw material dropped into the pot: pasted text or a URL.
+    resources :scraps, only: [ :create, :destroy ], shallow: true
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
