@@ -1,0 +1,72 @@
+module Interview
+  # The interviewer's prompt material — local for now, shaped like a hob
+  # persona (system core + rendering helpers) so it can migrate into hob's
+  # persona system when that ships. See DESIGN.md: the persona stays local
+  # until hob owns personas.
+  module Persona
+    SYSTEM_CORE = <<~PROMPT.freeze
+      You are an interviewer helping a writer develop a blog post idea. Your
+      only job is to ask the single most useful next question.
+
+      Hard rules — these are the product, not suggestions:
+      - Ask EXACTLY ONE question per turn. No preamble, no summary, no praise.
+        Output the question and nothing else.
+      - Never write prose for the post. Never suggest sentences, phrasings,
+        titles, or wording. Never put words in the writer's mouth.
+      - Be pointed and specific. Ground every question in something the writer
+        actually said; quote their own phrase back when it sharpens the ask.
+      - Push where the idea is thinnest: an unsupported claim wants an example,
+        a one-sided take wants the strongest counterargument, an abstract point
+        wants a concrete story, a finished-seeming idea wants its opening hook.
+      - One thing at a time. A question with "and also" in it is two questions.
+    PROMPT
+
+    module_function
+
+    # Render the full prompt for the next-question call: persona + idea state
+    # + transcript, ending with the ask. Single string because the interviewer
+    # is a service call on the transcript, not a resumed chat session.
+    def next_question_prompt(idea)
+      <<~PROMPT
+        #{SYSTEM_CORE}
+        The writer's seed for this post:
+        #{idea.seed.strip}
+
+        #{graph_digest(idea)}
+        Interview so far:
+        #{transcript_digest(idea)}
+
+        Ask the single most useful next question.
+      PROMPT
+    end
+
+    def opening_prompt(idea)
+      <<~PROMPT
+        #{SYSTEM_CORE}
+        The writer's seed for this post:
+        #{idea.seed.strip}
+
+        This is the very first question of the interview. Ask the one question
+        that best helps the writer start talking — aimed at the heart of what
+        they seem to want to say, not at logistics.
+      PROMPT
+    end
+
+    # What the graph already holds, so the interviewer pushes on gaps instead
+    # of re-covering ground.
+    def graph_digest(idea)
+      nodes = idea.idea_nodes.ordered
+      return "The idea graph is empty so far.\n" if nodes.empty?
+
+      lines = nodes.map { |n| "- [#{n.node_type}#{n.open? ? ', open' : ''}] #{n.body}" }
+      "Points already captured in the idea graph:\n#{lines.join("\n")}\n"
+    end
+
+    def transcript_digest(idea, turns: 12)
+      idea.transcript.last(turns).map do |node|
+        speaker = node.interviewer? ? "Interviewer" : "Writer"
+        "#{speaker}: #{node.content}"
+      end.join("\n\n")
+    end
+  end
+end

@@ -1,0 +1,45 @@
+%nav.crumb= link_to "← all ideas", root_path
+
+%header.idea-header
+  %h1= @idea.display_title
+  %blockquote.seed= @idea.seed
+
+-# The re-entry ritual: recap first, then exactly ONE next question.
+- if @nodes_by_type.any?
+  %section.recap
+    %h2 The graph so far
+    - IdeaNode.node_types.each_key do |type|
+      - nodes = @nodes_by_type[type]
+      - next if nodes.blank?
+      .node-group{ class: type }
+        %h3= type.pluralize(nodes.size)
+        %ul
+          - nodes.each do |node|
+            %li{ class: (node.open? ? "open" : nil) }= node.body
+
+%section.turn
+  - if @idea.head_hash.blank?
+    %p.coax The interview hasn't started. One question at a time; answering one is a whole session.
+    = button_to "Start the interview", next_question_idea_path(@idea), class: "primary"
+  - elsif @conductor.awaiting_question?
+    %p.coax Your answer is saved — the next question never arrived.
+    = button_to "Ask me the next question", next_question_idea_path(@idea), class: "primary"
+  - elsif (question = @conductor.pending_question)
+    .question
+      %p= question.content
+    = form_with url: answer_idea_path(@idea) do |f|
+      = f.text_area :answer, rows: 5, placeholder: "Answer in your own words — the graph grows from what you say.", required: true, autofocus: true
+      = f.submit "Answer"
+
+- if @transcript.present?
+  %details.transcript
+    %summary Full interview (#{@transcript.size} turns)
+    - @transcript.each do |node|
+      .turn-row{ class: node.role }
+        %span.speaker= node.interviewer? ? "interviewer" : "you"
+        %p= node.content
+
+- if @idea.idea_nodes.any?
+  %footer.handoff
+    = link_to "View outline (markdown)", outline_idea_path(@idea, format: :md)
+    %code.curl curl #{outline_idea_url(@idea)}

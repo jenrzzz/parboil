@@ -1,0 +1,23 @@
+%header.masthead
+  %h1 parboil
+  %p.tagline cook the idea partway — you finish it
+
+%section.seed-capture
+  = form_with model: @idea, url: ideas_path do |f|
+    = f.text_area :seed, rows: 3, placeholder: "What's the itch? Dump the idea in your own words — a sentence is plenty.", required: true
+    = f.submit "Plant it"
+
+%section.ideas
+  - if @ideas.empty?
+    %p.empty Nothing simmering yet. Plant the first idea above.
+  - else
+    %ul.idea-list
+      - @ideas.each do |idea|
+        %li{ class: idea.status }
+          = link_to idea.display_title, idea_path(idea)
+          %span.meta
+            %span.status= idea.status
+            - open = idea.idea_nodes.open_questions.count
+            - if open.positive?
+              %span.open-count #{open} open #{'question'.pluralize(open)}
+            %span.when updated #{time_ago_in_words(idea.updated_at)} ago

@@ -1,10 +1,111 @@
-/*
- * This is a manifest file that'll be compiled into application.css.
- *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
- */
+/* parboil — minimal, domestic, stays out of the way. */
+
+:root {
+  --ink: #2b2825;
+  --paper: #faf7f2;
+  --simmer: #c96f2f;
+  --steam: #8a8378;
+  --line: #e4ddd2;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: ui-serif, "Iowan Old Style", Georgia, serif;
+  color: var(--ink);
+  background: var(--paper);
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  line-height: 1.55;
+}
+
+h1, h2, h3 { font-weight: 600; line-height: 1.2; }
+h1 { font-size: 1.6rem; }
+h2 { font-size: 1.05rem; text-transform: lowercase; letter-spacing: 0.03em; color: var(--steam); margin-top: 2.5rem; }
+h3 { font-size: 0.9rem; text-transform: lowercase; color: var(--simmer); margin: 1rem 0 0.25rem; }
+
+a { color: var(--simmer); }
+.crumb a { text-decoration: none; color: var(--steam); }
+
+.masthead h1 { margin-bottom: 0; }
+.tagline { color: var(--steam); margin-top: 0.25rem; font-style: italic; }
+
+textarea {
+  width: 100%;
+  font: inherit;
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  resize: vertical;
+}
+
+input[type="submit"], button {
+  font: inherit;
+  padding: 0.5rem 1.1rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--simmer);
+  border-radius: 6px;
+  background: var(--simmer);
+  color: #fff;
+  cursor: pointer;
+}
+input[type="submit"]:hover, button:hover { filter: brightness(1.08); }
+
+.idea-list { list-style: none; padding: 0; }
+.idea-list li {
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+.idea-list a { text-decoration: none; font-weight: 600; }
+.meta { color: var(--steam); font-size: 0.8rem; display: flex; gap: 0.8rem; white-space: nowrap; }
+.meta .status { text-transform: lowercase; }
+.open-count { color: var(--simmer); }
+.empty { color: var(--steam); font-style: italic; }
+
+.seed {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 1rem;
+  border-left: 3px solid var(--line);
+  color: var(--steam);
+  font-style: italic;
+}
+
+.node-group ul { margin: 0.1rem 0 0.75rem; padding-left: 1.2rem; }
+.node-group li.open::after { content: " ⌛"; }
+
+.turn { margin-top: 2.5rem; }
+.coax { color: var(--steam); font-style: italic; }
+.question {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--simmer);
+  border-radius: 6px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+.question p { margin: 0; }
+
+.transcript { margin-top: 2.5rem; color: var(--steam); }
+.transcript summary { cursor: pointer; }
+.turn-row { margin: 0.75rem 0; }
+.turn-row .speaker { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.turn-row.user { color: var(--ink); }
+.turn-row p { margin: 0.15rem 0 0; }
+
+.handoff { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.9rem; }
+.handoff .curl { display: block; margin-top: 0.4rem; color: var(--steam); font-size: 0.8rem; overflow-x: auto; }
+
+.flash-alert {
+  background: #fdf0e7;
+  border: 1px solid var(--simmer);
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1.5rem;
+}
