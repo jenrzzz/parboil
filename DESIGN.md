@@ -112,6 +112,9 @@ happens by another method (you, drafting). gem=404, npm=404, pypi=200
   generator (or plain templated HTML) inside jfave-web — that's a jfave-web
   decision, not a parboil one; parboil's contract ends at "markdown file with
   frontmatter."
+- Distribution is a **docker image** (the golden-path deploy), not a gem — no
+  package names to register anywhere. The earlier gem/npm availability checks
+  were just name-collision hygiene, not a reservation plan.
 
 ## Open questions
 
