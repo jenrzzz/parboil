@@ -2,3 +2,139 @@
   [1m[35m (179.4ms)[0m  [1m[35mCREATE DATABASE "parboil_development" ENCODING = 'unicode' /*application='Parboil'*/[0m
   [1m[35mSQL (0.0ms)[0m  [1m[35mSET search_path TO public /*application='Parboil'*/[0m
   [1m[35m (73.2ms)[0m  [1m[35mCREATE DATABASE "parboil_test" ENCODING = 'unicode' /*application='Parboil'*/[0m
+  [1m[35m (7.8ms)[0m  [1m[35mCREATE TABLE "schema_migrations" ("version" character varying NOT NULL PRIMARY KEY) /*application='Parboil'*/[0m
+  [1m[35m (4.3ms)[0m  [1m[35mCREATE TABLE "ar_internal_metadata" ("key" character varying NOT NULL PRIMARY KEY, "value" character varying, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Parboil'*/[0m
+  [1m[35m (0.1ms)[0m  [1m[34mSELECT pg_try_advisory_lock(7785492954336441645) /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.6ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Load (0.6ms)[0m  [1m[34mSELECT * FROM "ar_internal_metadata" WHERE "ar_internal_metadata"."key" = 'environment' ORDER BY "ar_internal_metadata"."key" ASC LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::InternalMetadata Create (0.9ms)[0m  [1m[32mINSERT INTO "ar_internal_metadata" ("key", "value", "created_at", "updated_at") VALUES ('environment', 'development', '2026-07-11 07:47:51.073283', '2026-07-11 07:47:51.073284') RETURNING "key" /*application='Parboil'*/[0m
+Migrating to CreateLLMUsages (20260711010000)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[35m (19.4ms)[0m  [1m[35mCREATE TABLE "llm_usages" ("id" bigserial primary key, "operation" character varying NOT NULL, "role" character varying, "model" character varying NOT NULL, "input_tokens" integer DEFAULT 0 NOT NULL, "output_tokens" integer DEFAULT 0 NOT NULL, "cost" decimal(10,6), "duration_ms" integer, "status" character varying NOT NULL, "metadata" jsonb DEFAULT '{}', "error_message" text, "prompt" text, "response" text, "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Parboil'*/[0m
+  [1m[35m (1.1ms)[0m  [1m[35mCREATE INDEX "index_llm_usages_on_operation_and_created_at" ON "llm_usages" ("operation", "created_at") /*application='Parboil'*/[0m
+  [1m[35m (0.5ms)[0m  [1m[35mCREATE INDEX "index_llm_usages_on_role_and_created_at" ON "llm_usages" ("role", "created_at") /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.2ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20260711010000') RETURNING "version" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+Migrating to CreateIdeas (20260711010100)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[35m (1.9ms)[0m  [1m[35mCREATE TABLE "ideas" ("id" bigserial primary key, "title" character varying, "seed" text NOT NULL, "status" integer DEFAULT 0 NOT NULL, "head_hash" character varying(64), "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL) /*application='Parboil'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE INDEX "index_ideas_on_status" ON "ideas" ("status") /*application='Parboil'*/[0m
+  [1m[35m (0.4ms)[0m  [1m[35mCREATE INDEX "index_ideas_on_updated_at" ON "ideas" ("updated_at") /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.1ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20260711010100') RETURNING "version" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.4ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+Migrating to CreateMessageNodes (20260711010200)
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[35m (3.7ms)[0m  [1m[35mCREATE TABLE "message_nodes" ("content_hash" character varying(64) NOT NULL PRIMARY KEY, "parent_hash" character varying(64), "idea_id" bigint NOT NULL, "role" integer DEFAULT 0 NOT NULL, "speaker_name" character varying, "content" text NOT NULL, "created_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_575316bcf1"
+FOREIGN KEY ("idea_id")
+  REFERENCES "ideas" ("id")
+) /*application='Parboil'*/[0m
+  [1m[35m (0.7ms)[0m  [1m[35mCREATE INDEX "index_message_nodes_on_idea_id_and_created_at" ON "message_nodes" ("idea_id", "created_at") /*application='Parboil'*/[0m
+  [1m[35m (0.6ms)[0m  [1m[35mCREATE INDEX "index_message_nodes_on_parent_hash" ON "message_nodes" ("parent_hash") /*application='Parboil'*/[0m
+  [1m[35m (1.6ms)[0m  [1m[35mALTER TABLE "message_nodes" ADD CONSTRAINT "fk_rails_18f0ac43e1"
+FOREIGN KEY ("parent_hash")
+  REFERENCES "message_nodes" ("content_hash")
+ ON DELETE SET NULL /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.1ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20260711010200') RETURNING "version" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+Migrating to CreateIdeaNodes (20260711010300)
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[35m (4.3ms)[0m  [1m[35mCREATE TABLE "idea_nodes" ("id" bigserial primary key, "idea_id" bigint NOT NULL, "node_type" integer NOT NULL, "body" text NOT NULL, "status" integer DEFAULT 0 NOT NULL, "parent_id" bigint, "position" integer DEFAULT 0 NOT NULL, "source_message_hash" character varying(64), "created_at" timestamp(6) NOT NULL, "updated_at" timestamp(6) NOT NULL, CONSTRAINT "fk_rails_7f5cf6af6b"
+FOREIGN KEY ("idea_id")
+  REFERENCES "ideas" ("id")
+, CONSTRAINT "fk_rails_a718f80558"
+FOREIGN KEY ("parent_id")
+  REFERENCES "idea_nodes" ("id")
+) /*application='Parboil'*/[0m
+  [1m[35m (0.6ms)[0m  [1m[35mCREATE INDEX "index_idea_nodes_on_idea_id" ON "idea_nodes" ("idea_id") /*application='Parboil'*/[0m
+  [1m[35m (0.5ms)[0m  [1m[35mCREATE INDEX "index_idea_nodes_on_parent_id" ON "idea_nodes" ("parent_id") /*application='Parboil'*/[0m
+  [1m[35m (0.5ms)[0m  [1m[35mCREATE INDEX "index_idea_nodes_on_idea_id_and_position" ON "idea_nodes" ("idea_id", "position") /*application='Parboil'*/[0m
+  [1m[35m (1.3ms)[0m  [1m[35mCREATE INDEX "index_idea_nodes_on_idea_id_and_node_type" ON "idea_nodes" ("idea_id", "node_type") /*application='Parboil'*/[0m
+  [1m[35m (1.2ms)[0m  [1m[35mALTER TABLE "idea_nodes" ADD CONSTRAINT "fk_rails_807aaf9cdc"
+FOREIGN KEY ("source_message_hash")
+  REFERENCES "message_nodes" ("content_hash")
+ ON DELETE SET NULL /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Create (0.1ms)[0m  [1m[32mINSERT INTO "schema_migrations" ("version") VALUES ('20260711010300') RETURNING "version" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.6ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[35m (0.2ms)[0m  [1m[34mSELECT pg_advisory_unlock(7785492954336441645) /*application='Parboil'*/[0m
+  [1m[36mActiveRecord::SchemaMigration Load (0.1ms)[0m  [1m[34mSELECT "schema_migrations"."version" FROM "schema_migrations" ORDER BY "schema_migrations"."version" ASC /*application='Parboil'*/[0m
+  [1m[35mSQL (0.0ms)[0m  [1m[35mSET search_path TO public /*application='Parboil'*/[0m
+  [1m[35mSQL (0.0ms)[0m  [1m[35mSET search_path TO "$user", public /*application='Parboil'*/[0m
+  [1m[35mSQL (0.0ms)[0m  [1m[35mSET search_path TO public /*application='Parboil'*/[0m
+  [1m[35mSQL (0.1ms)[0m  [1m[35mSET search_path TO "$user", public /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mIdea Create (3.6ms)[0m  [1m[32mINSERT INTO "ideas" ("title", "seed", "status", "head_hash", "created_at", "updated_at") VALUES (NULL, 'Why static site generators lost to frameworks, and what we gave up.', 0, NULL, '2026-07-11 07:48:11.074115', '2026-07-11 07:48:11.074115') RETURNING "id" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Exists? (1.7ms)[0m  [1m[34mSELECT 1 AS one FROM "message_nodes" WHERE "message_nodes"."content_hash" = '7f43a8866c0666d0977c7eb6a25050326be9a4914d60cfdc884119efd62fc6ec' LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mMessageNode Create (0.8ms)[0m  [1m[32mINSERT INTO "message_nodes" ("content_hash", "parent_hash", "idea_id", "role", "speaker_name", "content", "created_at") VALUES ('7f43a8866c0666d0977c7eb6a25050326be9a4914d60cfdc884119efd62fc6ec', NULL, 1, 2, NULL, 'You are the interviewer.', '2026-07-11 07:48:11.093960') RETURNING "content_hash" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Exists? (10.0ms)[0m  [1m[34mSELECT 1 AS one FROM "message_nodes" WHERE "message_nodes"."content_hash" = 'b12aab8ef639c5e7981ee6a03150853966fffb667d996ada3f6ac9a2ffcd93fe' LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mMessageNode Create (0.5ms)[0m  [1m[32mINSERT INTO "message_nodes" ("content_hash", "parent_hash", "idea_id", "role", "speaker_name", "content", "created_at") VALUES ('b12aab8ef639c5e7981ee6a03150853966fffb667d996ada3f6ac9a2ffcd93fe', '7f43a8866c0666d0977c7eb6a25050326be9a4914d60cfdc884119efd62fc6ec', 1, 1, 'interviewer', 'What did we give up, concretely?', '2026-07-11 07:48:11.106204') RETURNING "content_hash" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Exists? (0.6ms)[0m  [1m[34mSELECT 1 AS one FROM "message_nodes" WHERE "message_nodes"."content_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mMessageNode Create (0.4ms)[0m  [1m[32mINSERT INTO "message_nodes" ("content_hash", "parent_hash", "idea_id", "role", "speaker_name", "content", "created_at") VALUES ('785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb', 'b12aab8ef639c5e7981ee6a03150853966fffb667d996ada3f6ac9a2ffcd93fe', 1, 0, 'jenner', 'We gave up the ability to just read the HTML and know what the page is.', '2026-07-11 07:48:11.108799') RETURNING "content_hash" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mIdea Update (0.9ms)[0m  [1m[33mUPDATE "ideas" SET "status" = 1, "head_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb', "updated_at" = '2026-07-11 07:48:11.110069' WHERE "ideas"."id" = 1 /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mMessageNode Exists? (0.2ms)[0m  [1m[34mSELECT 1 AS one FROM "message_nodes" WHERE "message_nodes"."content_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Exists? (1.3ms)[0m  [1m[34mSELECT 1 AS one FROM "message_nodes" WHERE "message_nodes"."content_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' AND "message_nodes"."content_hash" != '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[31mROLLBACK /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Create (2.9ms)[0m  [1m[32mINSERT INTO "idea_nodes" ("idea_id", "node_type", "body", "status", "parent_id", "position", "source_message_hash", "created_at", "updated_at") VALUES (1, 0, 'Static HTML was legible in a way framework output is not.', 0, NULL, 0, '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb', '2026-07-11 07:48:11.125344', '2026-07-11 07:48:11.125344') RETURNING "id" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Create (0.9ms)[0m  [1m[32mINSERT INTO "idea_nodes" ("idea_id", "node_type", "body", "status", "parent_id", "position", "source_message_hash", "created_at", "updated_at") VALUES (1, 2, 'Is legibility actually worth the DX we traded for it?', 1, NULL, 1, NULL, '2026-07-11 07:48:11.129448', '2026-07-11 07:48:11.129448') RETURNING "id" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.3ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mIdea Load (0.2ms)[0m  [1m[34mSELECT "ideas".* FROM "ideas" WHERE "ideas"."id" = 1 LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mMessageNode Load (0.3ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."idea_id" = 1 AND "message_nodes"."content_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' LIMIT 1 /*application='Parboil'*/[0m
+  ↳ app/models/idea.rb:17:in 'Idea#head'
+  [1m[36mMessageNode Load (0.2ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."content_hash" = 'b12aab8ef639c5e7981ee6a03150853966fffb667d996ada3f6ac9a2ffcd93fe' LIMIT 1 /*application='Parboil'*/[0m
+  ↳ app/models/message_node.rb:42:in 'MessageNode#thread_chain'
+  [1m[36mMessageNode Load (0.2ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."content_hash" = '7f43a8866c0666d0977c7eb6a25050326be9a4914d60cfdc884119efd62fc6ec' LIMIT 1 /*application='Parboil'*/[0m
+  ↳ app/models/message_node.rb:42:in 'MessageNode#thread_chain'
+  [1m[36mIdeaNode Exists? (0.3ms)[0m  [1m[34mSELECT 1 AS one FROM "idea_nodes" WHERE "idea_nodes"."source_message_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' AND "idea_nodes"."id" = 1 LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Load (0.3ms)[0m  [1m[34mSELECT "idea_nodes".* FROM "idea_nodes" WHERE "idea_nodes"."idea_id" = 1 AND "idea_nodes"."node_type" = 2 AND "idea_nodes"."status" = 1 /*application='Parboil'*/[0m
+  [1m[36mMessageNode Count (0.6ms)[0m  [1m[34mSELECT COUNT(*) FROM "message_nodes" WHERE "message_nodes"."idea_id" = 1 /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "idea_nodes" WHERE "idea_nodes"."idea_id" = 1 /*application='Parboil'*/[0m
+  [1m[36mCACHE MessageNode Load (0.0ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."idea_id" = 1 AND "message_nodes"."content_hash" = '785e6a1a217d854bf6f4196dd54a4a615b994d141643256d4458415cc04fc7fb' LIMIT 1[0m
+  ↳ app/models/idea.rb:17:in 'Idea#head'
+  [1m[36mCACHE MessageNode Load (0.0ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."content_hash" = 'b12aab8ef639c5e7981ee6a03150853966fffb667d996ada3f6ac9a2ffcd93fe' LIMIT 1[0m
+  ↳ app/models/message_node.rb:42:in 'MessageNode#thread_chain'
+  [1m[36mCACHE MessageNode Load (0.0ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."content_hash" = '7f43a8866c0666d0977c7eb6a25050326be9a4914d60cfdc884119efd62fc6ec' LIMIT 1[0m
+  ↳ app/models/message_node.rb:42:in 'MessageNode#thread_chain'
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Load (0.6ms)[0m  [1m[34mSELECT "message_nodes".* FROM "message_nodes" WHERE "message_nodes"."idea_id" = 1 /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Update All (0.2ms)[0m  [1m[33mUPDATE "idea_nodes" SET "source_message_hash" = NULL WHERE "idea_nodes"."source_message_hash" = '7f43a8866c0666d0977c7eb6a25050326be9a4914d60cfdc884119efd62fc6ec' /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[31mROLLBACK /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mIdea Create (1.0ms)[0m  [1m[32mINSERT INTO "ideas" ("title", "seed", "status", "head_hash", "created_at", "updated_at") VALUES (NULL, 'teardown test', 0, NULL, '2026-07-11 07:48:43.674231', '2026-07-11 07:48:43.674231') RETURNING "id" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (1.7ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Exists? (1.3ms)[0m  [1m[34mSELECT 1 AS one FROM "message_nodes" WHERE "message_nodes"."content_hash" = '70f6b6b2c34da90ad2675b5ecd579e4e65486a4d30af292674a0ade534b2bb94' LIMIT 1 /*application='Parboil'*/[0m
+  [1m[36mMessageNode Create (0.7ms)[0m  [1m[32mINSERT INTO "message_nodes" ("content_hash", "parent_hash", "idea_id", "role", "speaker_name", "content", "created_at") VALUES ('70f6b6b2c34da90ad2675b5ecd579e4e65486a4d30af292674a0ade534b2bb94', NULL, 2, 0, NULL, 'hi', '2026-07-11 07:48:43.687535') RETURNING "content_hash" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Create (1.7ms)[0m  [1m[32mINSERT INTO "idea_nodes" ("idea_id", "node_type", "body", "status", "parent_id", "position", "source_message_hash", "created_at", "updated_at") VALUES (2, 0, 'c', 0, NULL, 0, '70f6b6b2c34da90ad2675b5ecd579e4e65486a4d30af292674a0ade534b2bb94', '2026-07-11 07:48:43.712325', '2026-07-11 07:48:43.712325') RETURNING "id" /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.5ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.1ms)[0m  [1m[35mBEGIN /*application='Parboil'*/[0m
+  [1m[36mMessageNode Delete All (1.6ms)[0m  [1m[31mDELETE FROM "message_nodes" WHERE "message_nodes"."idea_id" = 2 /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Load (0.3ms)[0m  [1m[34mSELECT "idea_nodes".* FROM "idea_nodes" WHERE "idea_nodes"."idea_id" = 2 /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Update All (0.2ms)[0m  [1m[33mUPDATE "idea_nodes" SET "parent_id" = NULL WHERE "idea_nodes"."parent_id" = 3 /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Destroy (0.9ms)[0m  [1m[31mDELETE FROM "idea_nodes" WHERE "idea_nodes"."id" = 3 /*application='Parboil'*/[0m
+  [1m[36mIdea Destroy (0.9ms)[0m  [1m[31mDELETE FROM "ideas" WHERE "ideas"."id" = 2 /*application='Parboil'*/[0m
+  [1m[36mTRANSACTION (0.2ms)[0m  [1m[35mCOMMIT /*application='Parboil'*/[0m
+  [1m[36mIdea Count (0.4ms)[0m  [1m[34mSELECT COUNT(*) FROM "ideas" /*application='Parboil'*/[0m
+  [1m[36mMessageNode Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "message_nodes" /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "idea_nodes" /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Delete All (1.7ms)[0m  [1m[31mDELETE FROM "idea_nodes" /*application='Parboil'*/[0m
+  [1m[36mMessageNode Delete All (1.1ms)[0m  [1m[31mDELETE FROM "message_nodes" /*application='Parboil'*/[0m
+  [1m[36mIdea Delete All (0.7ms)[0m  [1m[31mDELETE FROM "ideas" /*application='Parboil'*/[0m
+  [1m[36mLLMUsage Delete All (1.4ms)[0m  [1m[31mDELETE FROM "llm_usages" /*application='Parboil'*/[0m
+  [1m[36mIdea Count (0.2ms)[0m  [1m[34mSELECT COUNT(*) FROM "ideas" /*application='Parboil'*/[0m
+  [1m[36mMessageNode Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "message_nodes" /*application='Parboil'*/[0m
+  [1m[36mIdeaNode Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "idea_nodes" /*application='Parboil'*/[0m
+  [1m[36mLLMUsage Count (0.1ms)[0m  [1m[34mSELECT COUNT(*) FROM "llm_usages" /*application='Parboil'*/[0m
