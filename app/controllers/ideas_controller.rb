@@ -9,7 +9,9 @@ class IdeasController < ApplicationController
   end
 
   def index
-    @ideas = Idea.order(updated_at: :desc)
+    # idea_nodes preloaded because Ripeness and the open-question count both
+    # read the association in Ruby — no per-idea COUNT queries.
+    @ideas = Idea.includes(:idea_nodes).order(updated_at: :desc)
     @idea = Idea.new
   end
 
@@ -28,6 +30,8 @@ class IdeasController < ApplicationController
     @conductor = Interview::Conductor.new(@idea)
     @transcript = @idea.transcript
     @nodes_by_type = @idea.idea_nodes.ordered.group_by(&:node_type)
+    @ripeness = @idea.ripeness
+    @graph = Graph::Layout.new(@idea)
   end
 
   # One full turn. The answer is saved before extraction or the next question,

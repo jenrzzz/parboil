@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_11_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_07_11_030000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -23,6 +23,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_020000) do
     t.integer "position", default: 0, null: false
     t.string "source_message_hash", limit: 64
     t.integer "status", default: 0, null: false
+    t.boolean "thesis", default: false, null: false
     t.datetime "updated_at", null: false
     t.index ["idea_id", "node_type"], name: "index_idea_nodes_on_idea_id_and_node_type"
     t.index ["idea_id", "position"], name: "index_idea_nodes_on_idea_id_and_position"
@@ -31,6 +32,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_020000) do
   end
 
   create_table "ideas", force: :cascade do |t|
+    t.string "audience"
     t.datetime "created_at", null: false
     t.string "head_hash", limit: 64
     t.text "seed", null: false

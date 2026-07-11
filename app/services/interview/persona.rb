@@ -32,7 +32,7 @@ module Interview
         The writer's seed for this post:
         #{idea.seed.strip}
 
-        #{material_digest(idea)}#{graph_digest(idea)}
+        #{material_digest(idea)}#{graph_digest(idea)}#{ripeness_gaps(idea)}
         Interview so far:
         #{transcript_digest(idea)}
 
@@ -84,6 +84,24 @@ module Interview
         where do they agree, disagree, or go further than this material?
 
         #{entries.join("\n\n")}
+
+      SECTION
+    end
+
+    # What the checklist still lacks, so the interview converges on
+    # draft-ready instead of wandering. Framed as steering, not a script — a
+    # sharp follow-up on what was just said still wins.
+    def ripeness_gaps(idea)
+      return "" if idea.ripe?
+
+      missing = idea.ripeness.missing
+      return "" if missing.empty?
+
+      gaps = missing.map { |c| c.detail ? "#{c.label} (#{c.detail})" : c.label }
+      <<~SECTION
+        For this post to be draft-ready it still needs: #{gaps.join('; ')}.
+        Steer toward these gaps when it feels natural — but a sharp follow-up
+        on what the writer just said beats a checklist question.
 
       SECTION
     end

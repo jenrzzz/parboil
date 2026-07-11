@@ -16,8 +16,14 @@
         %li{ class: idea.status }
           = link_to idea.display_title, idea_path(idea)
           %span.meta
-            %span.status= idea.status
-            - open = idea.idea_nodes.open_questions.count
+            - if idea.ripe?
+              %span.status.ripe ripe — ready to draft
+            - else
+              %span.status= idea.status
+              - if idea.interviewing?
+                - r = idea.ripeness
+                %span.ripeness-progress #{r.met_count}/#{r.total} ripe
+            - open = idea.idea_nodes.count { |n| n.node_type == "question" && n.open? }
             - if open.positive?
               %span.open-count #{open} open #{'question'.pluralize(open)}
             %span.when updated #{time_ago_in_words(idea.updated_at)} ago

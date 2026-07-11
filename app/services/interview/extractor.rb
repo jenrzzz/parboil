@@ -25,6 +25,11 @@ module Interview
                 type: "string",
                 description: "The point in the writer's own words, trimmed to stand alone. " \
                              "Never paraphrase into your words; never add content they didn't say."
+              },
+              thesis: {
+                type: "boolean",
+                description: "true ONLY for a claim that is the writer's core position — the one " \
+                             "the whole post hangs on, stated as such. Most claims are not the thesis."
               }
             },
             required: %w[node_type body],
@@ -34,6 +39,11 @@ module Interview
         title: {
           type: %w[string null],
           description: "A working title ONLY if the writer themselves said a phrase that works as one; otherwise null. Their words, not yours."
+        },
+        audience: {
+          type: %w[string null],
+          description: "Who the post is for, ONLY if the writer named or clearly described their " \
+                       "intended reader in this answer; otherwise null. Their words, not yours."
         }
       },
       required: %w[nodes],
@@ -91,6 +101,7 @@ module Interview
           node_type: node_type,
           body: body,
           status: node_type == "question" ? :open : :settled,
+          thesis: node_type == "claim" && node[:thesis] == true,
           position: (position += 1),
           source_message: answer_node
         )
@@ -99,7 +110,11 @@ module Interview
       if idea.title.blank? && data[:title].present?
         idea.update!(title: data[:title].to_s.strip.truncate(120))
       end
+      if idea.audience.blank? && data[:audience].present?
+        idea.update!(audience: data[:audience].to_s.strip.truncate(200))
+      end
 
+      idea.ripen_if_ready!
       created
     end
   end

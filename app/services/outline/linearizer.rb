@@ -39,14 +39,15 @@ module Outline
     end
 
     def frontmatter
-      <<~YAML.strip
-        ---
-        title: #{idea.display_title.inspect}
-        seeded: #{idea.created_at.to_date.iso8601}
-        outlined: #{Date.current.iso8601}
-        status: outline
-        ---
-      YAML
+      thesis = nodes.find(&:thesis?)
+      lines = [ "---", "title: #{idea.display_title.inspect}" ]
+      lines << "audience: #{idea.audience.inspect}" if idea.audience.present?
+      lines << "thesis: #{thesis.body.inspect}" if thesis
+      lines << "seeded: #{idea.created_at.to_date.iso8601}"
+      lines << "outlined: #{Date.current.iso8601}"
+      lines << "status: outline"
+      lines << "---"
+      lines.join("\n")
     end
 
     def hooks_section
@@ -56,8 +57,10 @@ module Outline
       "**Possible openings:**\n\n" + hooks.map { |h| "> #{h.body}" }.join("\n>\n")
     end
 
+    # Thesis first: the spine of the post leads the outline.
     def claims_section
-      claims = of_type(:claim)
+      thesis_claims, rest = of_type(:claim).partition(&:thesis?)
+      claims = thesis_claims + rest
       return nil if claims.empty?
 
       claims.map { |claim| claim_block(claim) }.join("\n\n")

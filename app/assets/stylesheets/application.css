@@ -156,3 +156,73 @@ button.quiet:hover { color: var(--simmer); filter: none; }
   background: #fff;
   margin: 0.6rem 0 0.4rem;
 }
+
+/* --- ripeness ------------------------------------------------------- */
+
+.audience { color: var(--steam); font-style: italic; margin: 0.1rem 0 0; }
+
+.ripeness { margin-top: 1.5rem; }
+.ripe-banner {
+  background: #eef2e4;
+  border: 1px solid #b5c48f;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  color: #55663a;
+}
+.checklist {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+  font-size: 0.85rem;
+}
+.checklist .tick { margin-right: 0.3rem; }
+.checklist .met { color: #55663a; }
+.checklist .unmet { color: var(--steam); }
+.checklist .detail { margin-left: 0.35rem; font-style: italic; font-size: 0.78rem; }
+
+/* --- idea graph ------------------------------------------------------ */
+
+.graph-wrap { margin: 1rem 0; }
+.idea-graph { width: 100%; height: auto; max-height: 34rem; display: block; }
+
+.graph-edge { stroke: var(--line); stroke-width: 1.5; }
+.graph-node { cursor: pointer; }
+.graph-node circle { stroke: var(--paper); stroke-width: 2; }
+.graph-node.center circle { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+.graph-node.claim circle { fill: var(--simmer); }
+.graph-node.hook circle { fill: #9a7bac; }
+.graph-node.counterpoint circle { fill: #7b8a97; }
+.graph-node.example circle { fill: #7d9b76; }
+.graph-node.question circle { fill: #c9a23f; }
+.graph-node.reference circle { fill: var(--steam); }
+.graph-node.is-thesis circle { stroke: var(--ink); stroke-width: 2.5; }
+.graph-node.is-open circle { stroke-dasharray: 4 3; stroke: var(--ink); }
+
+.node-label {
+  font-size: 12px;
+  fill: var(--ink);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+.graph-node.center .node-label { font-weight: 600; }
+
+.idea-graph.focused .graph-node { opacity: 0.18; }
+.idea-graph.focused .graph-node.is-focus,
+.idea-graph.focused .graph-node.is-neighbor { opacity: 1; }
+.idea-graph.focused .graph-edge { opacity: 0.12; }
+.idea-graph.focused .graph-edge.is-active { opacity: 1; stroke: var(--simmer); }
+
+.graph-detail {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--simmer);
+  border-radius: 6px;
+  background: #fff;
+  padding: 0.7rem 1rem;
+  margin-top: 0.5rem;
+}
+.gd-type { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--steam); }
+.gd-body { margin: 0.25rem 0 0; }
+
+.as-list { margin-top: 0.75rem; color: var(--steam); }
+.as-list summary { cursor: pointer; font-size: 0.9rem; }

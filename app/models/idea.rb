@@ -29,4 +29,14 @@ class Idea < ApplicationRecord
   def display_title
     title.presence || seed.to_s.truncate(60)
   end
+
+  def ripeness
+    Ripeness.new(self)
+  end
+
+  # Called after each extraction. One-way: ripeness is permission to stop,
+  # not a gate that reopens if the checklist heuristics shift later.
+  def ripen_if_ready!
+    update!(status: :ripe) if interviewing? && ripeness.ripe?
+  end
 end

@@ -2,20 +2,42 @@
 
 %header.idea-header
   %h1= @idea.display_title
+  - if @idea.audience.present?
+    %p.audience for: #{@idea.audience}
   %blockquote.seed= @idea.seed
+
+- if @idea.head_hash.present?
+  %section.ripeness{ class: (@idea.ripe? ? "is-ripe" : nil) }
+    - if @idea.ripe?
+      %p.ripe-banner
+        Ready to draft — the checklist is met. Pull the outline and go write.
+        Keep interviewing if it's still simmering.
+    %ul.checklist
+      - @ripeness.checks.each do |check|
+        %li{ class: (check.met ? "met" : "unmet") }
+          %span.tick= check.met ? "✓" : "○"
+          %span.label= check.label
+          - if check.detail
+            %span.detail= check.detail
 
 -# The re-entry ritual: recap first, then exactly ONE next question.
 - if @nodes_by_type.any?
   %section.recap
     %h2 The graph so far
-    - IdeaNode.node_types.each_key do |type|
-      - nodes = @nodes_by_type[type]
-      - next if nodes.blank?
-      .node-group{ class: type }
-        %h3= type.pluralize(nodes.size)
-        %ul
-          - nodes.each do |node|
-            %li{ class: (node.open? ? "open" : nil) }= node.body
+    = render "graph", graph: @graph
+    %details.as-list
+      %summary as a list
+      - IdeaNode.node_types.each_key do |type|
+        - nodes = @nodes_by_type[type]
+        - next if nodes.blank?
+        .node-group{ class: type }
+          %h3= type.pluralize(nodes.size)
+          %ul
+            - nodes.each do |node|
+              %li{ class: (node.open? ? "open" : nil) }
+                - if node.thesis?
+                  %strong thesis:
+                = node.body
 
 %section.scraps
   %h2 raw material

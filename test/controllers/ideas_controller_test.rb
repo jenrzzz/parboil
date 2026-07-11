@@ -25,6 +25,32 @@ class IdeasControllerTest < ActionDispatch::IntegrationTest
     assert_select "form[action=?]", idea_scraps_path(idea)
   end
 
+  test "show renders graph svg and ripeness checklist for an interviewing idea" do
+    idea = Idea.create!(seed: "an itch", status: :interviewing, head_hash: "x" * 64)
+    node = MessageNode.create!(idea: idea, role: :interviewer, content: "q?")
+    idea.update!(head_hash: node.content_hash)
+    claim = idea.idea_nodes.create!(node_type: :claim, body: "spine", thesis: true, position: 1)
+    idea.idea_nodes.create!(node_type: :example, body: "kid", position: 2, parent: claim)
+
+    get idea_path(idea)
+    assert_response :success
+    assert_select "svg.idea-graph"
+    assert_select "svg.idea-graph g.graph-node", 3 # center + 2 nodes
+    assert_select ".checklist li", 5
+    assert_select ".checklist li.met", 1 # thesis only
+  end
+
+  test "outline puts thesis claim first and audience in frontmatter" do
+    idea = Idea.create!(seed: "an itch", audience: "tired reviewers")
+    idea.idea_nodes.create!(node_type: :claim, body: "later point", position: 1)
+    idea.idea_nodes.create!(node_type: :claim, body: "the spine", thesis: true, position: 2)
+
+    get outline_idea_path(idea, format: :md)
+    assert_includes response.body, %(audience: "tired reviewers")
+    assert_includes response.body, %(thesis: "the spine")
+    assert_operator response.body.index("## the spine"), :<, response.body.index("## later point")
+  end
+
   test "outline renders markdown with scrap links in references" do
     idea = Idea.create!(seed: "an itch")
     idea.idea_nodes.create!(node_type: :claim, body: "a claim", position: 1)

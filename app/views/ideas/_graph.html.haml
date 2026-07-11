@@ -1,0 +1,27 @@
+-# Read-only graph render with click-to-focus (DESIGN v2). No editing, no
+-# canvas — clicking a node lights its neighborhood and shows the full text
+-# below. The center is the idea itself. Only rendered when the graph has
+-# nodes (the caller guards), so no empty-state handling here.
+.graph-wrap{ data: { controller: "graph" } }
+  %svg.idea-graph{ viewBox: "#{-graph.extent} #{-graph.extent} #{graph.extent * 2} #{graph.extent * 2}",
+                   data: { graph_target: "svg", action: "click->graph#clear" } }
+    - graph.edges.each do |edge|
+      %line.graph-edge{ x1: edge.x1, y1: edge.y1, x2: edge.x2, y2: edge.y2,
+                        data: { from: edge.from, to: edge.to } }
+    %g.graph-node.center{ data: { node_id: 0, body: graph.idea.seed, node_kind: "seed",
+                                  neighbors: graph.center_neighbors,
+                                  action: "click->graph#focus" } }
+      %circle{ r: 44 }
+      %text.node-label{ y: 60, "text-anchor": "middle" }= graph.center_label
+    - graph.nodes.each do |node|
+      %g.graph-node{ class: [ node.type, ("is-thesis" if node.thesis), ("is-open" if node.open) ].compact,
+                     transform: "translate(#{node.x},#{node.y})",
+                     data: { node_id: node.id, body: node.body,
+                             node_kind: "#{node.type}#{' — thesis' if node.thesis}#{' — open' if node.open}",
+                             neighbors: node.neighbors,
+                             action: "click->graph#focus" } }
+      %circle{ r: node.r }
+      %text.node-label{ y: node.r + 14, "text-anchor": "middle" }= node.label
+  .graph-detail{ data: { graph_target: "panel" }, hidden: true }
+    %span.gd-type{ data: { graph_target: "kind" } }
+    %p.gd-body{ data: { graph_target: "body" } }
