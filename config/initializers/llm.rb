@@ -11,10 +11,9 @@ module LLM
     ROLE_MODELS = {
       # The questioner. Quality of the question is the whole product, so it
       # gets the strong model.
-      interviewer: "claude-sonnet-4-6",
-      # Cheap structured extraction of typed nodes from an answer. Classifier
-      # work — Haiku is plenty.
-      extractor:   "claude-haiku-4-5"
+      interviewer: "claude-sonnet-5",
+      # Structured extraction of typed nodes from an answer.
+      extractor:   "claude-sonnet-5"
     }.freeze
 
     attr_accessor :api_key, :pricing
@@ -27,6 +26,7 @@ module LLM
         # USD per 1M tokens.
         "claude-haiku-4-5"  => { input: 1.00, output: 5.00 },
         "claude-sonnet-4-6" => { input: 3.00, output: 15.00 },
+        "claude-sonnet-5"   => { input: 3.00, output: 15.00 },
         "claude-opus-4-8"   => { input: 5.00, output: 25.00 }
       }
     end
