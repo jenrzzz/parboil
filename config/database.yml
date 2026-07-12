@@ -84,12 +84,13 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# All four components share one Postgres server via DATABASE_URL; each Solid
+# component overrides only the database name, so db:prepare on boot creates and
+# migrates all of them (the mise multi-DB gotcha, avoided from day one).
 production:
   primary: &primary_production
     <<: *default
-    database: parboil_production
-    username: parboil
-    password: <%= ENV["PARBOIL_DATABASE_PASSWORD"] %>
+    url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *primary_production
     database: parboil_production_cache

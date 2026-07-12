@@ -1,0 +1,68 @@
+# Coolify deploy for parboil (https://ideas.jfave.com), gated behind Authelia.
+#
+# Traefik routing is defined HERE, not via Coolify's domain field: Coolify's
+# generated labels can't attach a custom middleware, and setting a domain in
+# the UI would generate a second router for the same host WITHOUT forward-auth
+# — an auth bypass. Leave the Coolify domain field empty; these labels are the
+# routing. "Connect to Predefined Network" must be ON so `web` shares the
+# `coolify` network with Traefik, the parboil-db Postgres, and Authelia.
+#
+# The forward-auth middleware fails CLOSED: if Authelia is missing or its
+# jfave.com cookie domain isn't configured yet, requests get 401/500 — never
+# an open app.
+#
+# Env vars (set in Coolify, runtime-only — build-time env trips Rails 8's
+# Dockerfile `# check=error=true` secrets lint, the mise gotcha):
+#   RAILS_MASTER_KEY      — config/master.key (decrypts credentials: secret_key_base)
+#   DATABASE_URL          — postgres://parboil:…@<parboil-db-uuid>:5432/parboil_production
+#   ANTHROPIC_API_KEY     — the interviewer/extractor; without it LLM turns error politely
+#   SOLID_QUEUE_IN_PUMA   — set to "1": jobs run inside the web container (no worker yet)
+#   AUTHELIA_FORWARDAUTH_URL — REQUIRED: the Authelia authz endpoint, e.g.
+#       http://<authelia-host>:9091/api/authz/forward-auth (internal hostname —
+#       deployment detail, deliberately not committed here)
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      SOLID_QUEUE_IN_PUMA: ${SOLID_QUEUE_IN_PUMA:-1}
+    volumes:
+      # Active Storage local disk (config/storage.yml :local)
+      - parboil_storage:/rails/storage
+    healthcheck:
+      # /up is excluded from the force_ssl redirect in production.rb
+      test: ["CMD", "curl", "-f", "http://localhost/up"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s   # db:prepare runs in the entrypoint on first boot
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=coolify
+      # https router — the only route to the app, always through forward-auth
+      - traefik.http.routers.parboil.entrypoints=https
+      - traefik.http.routers.parboil.rule=Host(`ideas.jfave.com`)
+      - traefik.http.routers.parboil.tls=true
+      - traefik.http.routers.parboil.tls.certresolver=letsencrypt
+      - traefik.http.routers.parboil.middlewares=parboil-authelia,gzip
+      - traefik.http.services.parboil.loadbalancer.server.port=80
+      # http router — redirect only (redirect-to-https is defined identically
+      # by every Coolify-managed app; re-declaring it is a no-op)
+      - traefik.http.routers.parboil-http.entrypoints=http
+      - traefik.http.routers.parboil-http.rule=Host(`ideas.jfave.com`)
+      - traefik.http.routers.parboil-http.middlewares=redirect-to-https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      # Authelia forward-auth (4.38+ authz endpoint). The address comes from a
+      # Coolify env var; unset it and the middleware is invalid → router drops
+      # out → 404, still never an open app.
+      - traefik.http.middlewares.parboil-authelia.forwardauth.address=${AUTHELIA_FORWARDAUTH_URL}
+      - traefik.http.middlewares.parboil-authelia.forwardauth.trustForwardHeader=true
+      - traefik.http.middlewares.parboil-authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name
+
+volumes:
+  parboil_storage:
