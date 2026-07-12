@@ -34,10 +34,37 @@ class IdeasControllerTest < ActionDispatch::IntegrationTest
 
     get idea_path(idea)
     assert_response :success
+    assert_select "form[action=?]", stuck_idea_path(idea) # the stuck escape hatch
     assert_select "svg.idea-graph"
     assert_select "svg.idea-graph g.graph-node", 3 # center + 2 nodes
     assert_select ".checklist li", 5
     assert_select ".checklist li.met", 1 # thesis only
+  end
+
+  test "stuck steps the pending question down instead of skipping it" do
+    idea = Idea.create!(seed: "an itch", status: :interviewing)
+    question = MessageNode.create!(idea: idea, role: :interviewer, content: "why does this matter?")
+    idea.update!(head_hash: question.content_hash)
+
+    stub_llm_complete("one time it mattered to you?") do
+      post stuck_idea_path(idea)
+    end
+
+    assert_redirected_to idea_path(idea)
+    head = idea.reload.head
+    assert head.interviewer?
+    assert_equal "one time it mattered to you?", head.content
+    assert_equal question.content_hash, head.parent_hash # chained, not replaced
+  end
+
+  test "stuck without a pending question is a no-op" do
+    idea = Idea.create!(seed: "an itch")
+    assert_no_difference -> { MessageNode.count } do
+      assert_no_difference -> { LLMUsage.count } do
+        post stuck_idea_path(idea)
+      end
+    end
+    assert_redirected_to idea_path(idea)
   end
 
   test "outline puts thesis claim first and audience in frontmatter" do

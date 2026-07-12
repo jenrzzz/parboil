@@ -53,6 +53,46 @@ module Interview
       PROMPT
     end
 
+    # The writer pressed "I'm stuck" on the pending question. Same shape as
+    # next_question_prompt but the ask inverts: instead of the most useful
+    # question, the *smallest* one that still faces the same gap. Ripeness
+    # gaps are deliberately omitted — steering someone stuck toward checklist
+    # coverage is exactly the wrong moment; stay on this hole.
+    def stepping_stone_prompt(idea, depth: 1)
+      <<~PROMPT
+        #{SYSTEM_CORE}
+        The writer's seed for this post:
+        #{idea.seed.strip}
+
+        #{material_digest(idea)}#{graph_digest(idea)}
+        Interview so far:
+        #{transcript_digest(idea)}
+
+        The writer is STUCK on your last question — it asked for more than
+        they can produce right now. Do not answer it for them, and do not
+        change the subject. Ask a smaller question that is a first step
+        toward the same gap. Smaller means one of: narrower scope; one
+        concrete moment, memory, or example instead of a general point;
+        their gut reaction instead of a worked-out position; or a choice
+        between two readings of something they already said.
+        #{escalation_note(depth)}
+      PROMPT
+    end
+
+    # Depth 1 is the first stuck press; deeper means the stepping stones
+    # themselves aren't landing, so shrink harder and finally make the block
+    # itself the subject — naming why a question is hard is also an answer.
+    def escalation_note(depth)
+      return "" if depth <= 1
+
+      <<~NOTE.strip
+        This is stepping-stone attempt #{depth} — the previous smaller
+        questions did not unstick them. Go much smaller: ask something
+        answerable in a single sentence, or ask what makes this hard to
+        talk about. Naming the block is also an answer.
+      NOTE
+    end
+
     # Budget per scrap and for the whole material section, so a long article
     # can't crowd out the transcript.
     SCRAP_CHAR_BUDGET = 1_500

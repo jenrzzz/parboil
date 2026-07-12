@@ -68,6 +68,39 @@ module Interview
       node
     end
 
+    # The writer is stuck on the pending question. Never skip it — append a
+    # smaller stepping-stone question aimed at the same gap, as a child of the
+    # stuck question. Consecutive presses step down further (stuck_depth tells
+    # the prompt how far down we already are).
+    def step_down!
+      raise NotStarted if idea.head_hash.blank?
+
+      question = pending_question
+      return ask_next! unless question
+
+      step = LLM::Gateway.complete(
+        role: :interviewer,
+        messages: Persona.stepping_stone_prompt(idea, depth: stuck_depth),
+        operation: "interview.step_down",
+        metadata: { idea_id: idea.id }
+      )
+      node = append!(role: :interviewer, content: step.strip, parent_hash: question.content_hash)
+      idea.update!(head_hash: node.content_hash)
+      node
+    end
+
+    # How many consecutive interviewer turns end the transcript: 1 is just the
+    # pending question, 2+ means stepping stones have already been asked.
+    def stuck_depth
+      depth = 0
+      node = idea.head
+      while node&.interviewer?
+        depth += 1
+        node = node.parent
+      end
+      depth
+    end
+
     # The pending question, if the interview is waiting on the writer.
     def pending_question
       head = idea.head

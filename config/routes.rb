@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     member do
       post :answer          # one interview turn: answer -> extract -> next question
       post :next_question   # start the interview, or resume a turn that died mid-question
+      post :stuck           # step the pending question down to a smaller one (never skip)
       get  :outline         # linearized markdown, curl-able (the drafting handoff)
     end
 

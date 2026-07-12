@@ -116,6 +116,16 @@ happens by another method (you, drafting). gem=404, npm=404, pypi=200
   package names to register anywhere. The earlier gem/npm availability checks
   were just name-collision hygiene, not a reservation plan.
 
+- **Stuck ≠ skip** (2026-07-11): a "Stuck? Ask me something smaller" affordance
+  under the answer box. Being stuck means the question asked for more than the
+  writer can produce right now — the blank-page problem again — so the fix is
+  to *step the question down* (narrower, one concrete moment, gut reaction),
+  never to skip it: skipping breaks the answer-one-question session contract
+  and leaves the debt in place. Stepping stones chain as children of the stuck
+  question in the DAG; consecutive presses go smaller, and deep stuck asks the
+  writer to name the block (naming the block is also an answer). Ripeness
+  steering is deliberately dropped from the stuck prompt — stay on this hole.
+
 ## Open questions
 
 - ~~Does the interviewer persona live in hob's persona system or stay local

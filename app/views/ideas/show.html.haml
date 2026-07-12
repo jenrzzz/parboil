@@ -75,6 +75,8 @@
     = form_with url: answer_idea_path(@idea) do |f|
       = f.text_area :answer, rows: 5, placeholder: "Answer in your own words — the graph grows from what you say.", required: true, autofocus: true
       = f.submit "Answer"
+    .stuck-row
+      = button_to "Stuck? Ask me something smaller", stuck_idea_path(@idea), class: "quiet"
 
 - if @transcript.present?
   %details.transcript

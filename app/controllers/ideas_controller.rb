@@ -1,5 +1,5 @@
 class IdeasController < ApplicationController
-  before_action :set_idea, only: [ :show, :answer, :next_question, :outline ]
+  before_action :set_idea, only: [ :show, :answer, :next_question, :stuck, :outline ]
 
   # LLM failures surface as a flash, never a 500 — the writer's words are
   # already persisted by the time any model call runs.
@@ -55,6 +55,15 @@ class IdeasController < ApplicationController
     elsif conductor.awaiting_question?
       conductor.ask_next!
     end
+    redirect_to idea_path(@idea)
+  end
+
+  # The writer is stuck on the pending question: ask a smaller stepping-stone
+  # question toward the same gap. Never skips, never answers for them. No-op
+  # when there is no pending question (double-submit, stale page).
+  def stuck
+    conductor = Interview::Conductor.new(@idea)
+    conductor.step_down! if conductor.pending_question
     redirect_to idea_path(@idea)
   end
 
