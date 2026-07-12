@@ -17,9 +17,6 @@
 #   DATABASE_URL          — postgres://parboil:…@<parboil-db-uuid>:5432/parboil_production
 #   ANTHROPIC_API_KEY     — the interviewer/extractor; without it LLM turns error politely
 #   SOLID_QUEUE_IN_PUMA   — set to "1": jobs run inside the web container (no worker yet)
-#   AUTHELIA_FORWARDAUTH_URL — REQUIRED: the Authelia authz endpoint, e.g.
-#       http://<authelia-host>:9091/api/authz/forward-auth (internal hostname —
-#       deployment detail, deliberately not committed here)
 
 services:
   web:
@@ -50,17 +47,21 @@ services:
       - traefik.http.routers.parboil.tls=true
       - traefik.http.routers.parboil.tls.certresolver=letsencrypt
       - traefik.http.routers.parboil.middlewares=parboil-authelia,gzip
+      - traefik.http.routers.parboil.service=parboil
       - traefik.http.services.parboil.loadbalancer.server.port=80
       # http router — redirect only (redirect-to-https is defined identically
       # by every Coolify-managed app; re-declaring it is a no-op)
       - traefik.http.routers.parboil-http.entrypoints=http
       - traefik.http.routers.parboil-http.rule=Host(`ideas.jfave.com`)
       - traefik.http.routers.parboil-http.middlewares=redirect-to-https
+      - traefik.http.routers.parboil-http.service=parboil
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      # Authelia forward-auth (4.38+ authz endpoint). The address comes from a
-      # Coolify env var; unset it and the middleware is invalid → router drops
-      # out → 404, still never an open app.
-      - traefik.http.middlewares.parboil-authelia.forwardauth.address=${AUTHELIA_FORWARDAUTH_URL}
+      # Authelia forward-auth (4.38+ authz endpoint), via the public portal
+      # host — one extra same-box hop through Traefik, in exchange for no
+      # internal topology in this file and no env interpolation in labels
+      # (Coolify escapes $ in labels, so ${VAR} never expands here). Fails
+      # closed while auth.jfave.com doesn't resolve yet.
+      - traefik.http.middlewares.parboil-authelia.forwardauth.address=https://auth.jfave.com/api/authz/forward-auth
       - traefik.http.middlewares.parboil-authelia.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.parboil-authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name
 
