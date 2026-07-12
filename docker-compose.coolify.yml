@@ -1,11 +1,13 @@
 # Coolify deploy for parboil (https://ideas.jfave.com), gated behind Authelia.
 #
-# Traefik routing is defined HERE, not via Coolify's domain field: Coolify's
-# generated labels can't attach a custom middleware, and setting a domain in
-# the UI would generate a second router for the same host WITHOUT forward-auth
-# — an auth bypass. Leave the Coolify domain field empty; these labels are the
-# routing. "Connect to Predefined Network" must be ON so `web` shares the
-# `coolify` network with Traefik, the parboil-db Postgres, and Authelia.
+# Proxy routing is defined HERE, not via Coolify's domain field: Coolify's
+# generated labels can't attach forward-auth, and setting a domain in the UI
+# would generate a second route for the same host WITHOUT auth — a bypass.
+# Leave the Coolify domain field empty; these labels are the routing.
+#
+# The host's Coolify proxy is CADDY (caddy-docker-proxy labels); the traefik.*
+# labels are kept in parallel so the gate survives a proxy switch — both
+# conventions carry the forward-auth.
 #
 # The forward-auth middleware fails CLOSED: if Authelia is missing or its
 # jfave.com cookie domain isn't configured yet, requests get 401/500 — never
@@ -64,6 +66,24 @@ services:
       - traefik.http.middlewares.parboil-authelia.forwardauth.address=https://auth.jfave.com/api/authz/forward-auth
       - traefik.http.middlewares.parboil-authelia.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.parboil-authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name
+      # Caddy (the active proxy) — forward_auth runs before reverse_proxy in
+      # Caddy's directive order, so every request authenticates first. The
+      # auth upstream is the public portal host: no internal topology here,
+      # and it fails closed while auth.jfave.com doesn't resolve.
+      - caddy_0=https://ideas.jfave.com
+      - caddy_0.encode=zstd gzip
+      - caddy_0.header=-Server
+      - caddy_0.forward_auth=https://auth.jfave.com
+      - caddy_0.forward_auth.uri=/api/authz/forward-auth
+      - caddy_0.forward_auth.copy_headers=Remote-User Remote-Groups Remote-Email Remote-Name
+      - caddy_0.reverse_proxy={{upstreams 80}}
+      - caddy_ingress_network=coolify
+    networks:
+      - coolify
+
+networks:
+  coolify:
+    external: true
 
 volumes:
   parboil_storage:
