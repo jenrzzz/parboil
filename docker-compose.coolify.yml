@@ -4,10 +4,8 @@
 # generated labels can't attach forward-auth, and setting a domain in the UI
 # would generate a second route for the same host WITHOUT auth — a bypass.
 # Leave the Coolify domain field empty; these labels are the routing.
-#
-# The host's Coolify proxy is CADDY (caddy-docker-proxy labels); the traefik.*
-# labels are kept in parallel so the gate survives a proxy switch — both
-# conventions carry the forward-auth.
+# (The Coolify proxy is Traefik v3 with HTTP/3 — don't be fooled by the
+# alt-svc header into thinking it's Caddy. Ask me how I know.)
 #
 # The forward-auth middleware fails CLOSED: if Authelia is missing or its
 # jfave.com cookie domain isn't configured yet, requests get 401/500 — never
@@ -58,26 +56,16 @@ services:
       - traefik.http.routers.parboil-http.middlewares=redirect-to-https
       - traefik.http.routers.parboil-http.service=parboil
       - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-      # Authelia forward-auth (4.38+ authz endpoint), via the public portal
-      # host — one extra same-box hop through Traefik, in exchange for no
-      # internal topology in this file and no env interpolation in labels
-      # (Coolify escapes $ in labels, so ${VAR} never expands here). Fails
-      # closed while auth.jfave.com doesn't resolve yet.
-      - traefik.http.middlewares.parboil-authelia.forwardauth.address=https://auth.jfave.com/api/authz/forward-auth
+      # Authelia forward-auth (4.38+ authz endpoint), direct to the Authelia
+      # container via its stable Coolify network alias — same-network hop, no
+      # proxy in between to rewrite the X-Forwarded-* headers Authelia reads
+      # (routing via the public portal URL gets a 400 for exactly that
+      # reason). "authelia" is a generic alias, no topology leaked. Note:
+      # ${VAR} interpolation does NOT work in labels under Coolify (it
+      # escapes $), hence the literal address. Fails closed if unreachable.
+      - traefik.http.middlewares.parboil-authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth
       - traefik.http.middlewares.parboil-authelia.forwardauth.trustForwardHeader=true
       - traefik.http.middlewares.parboil-authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name
-      # Caddy (the active proxy) — forward_auth runs before reverse_proxy in
-      # Caddy's directive order, so every request authenticates first. The
-      # auth upstream is the public portal host: no internal topology here,
-      # and it fails closed while auth.jfave.com doesn't resolve.
-      - caddy_0=https://ideas.jfave.com
-      - caddy_0.encode=zstd gzip
-      - caddy_0.header=-Server
-      - caddy_0.forward_auth=https://auth.jfave.com
-      - caddy_0.forward_auth.uri=/api/authz/forward-auth
-      - caddy_0.forward_auth.copy_headers=Remote-User Remote-Groups Remote-Email Remote-Name
-      - caddy_0.reverse_proxy={{upstreams 80}}
-      - caddy_ingress_network=coolify
     networks:
       - coolify
 
