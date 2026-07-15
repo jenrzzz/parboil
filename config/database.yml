@@ -84,22 +84,24 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
-# All four components share one Postgres server via DATABASE_URL; each Solid
-# component overrides only the database name, so db:prepare on boot creates and
-# migrates all of them (the mise multi-DB gotcha, avoided from day one).
+# Lifted verbatim from mise (the house pattern for Coolify Postgres):
+# each Solid component derives its own database from DATABASE_URL. A plain
+# `database:` key does NOT override a `url:` inherited via YAML anchor, so
+# all four configs silently collapse onto the primary database and db:prepare
+# never loads the solid_* schemas (queue supervisor then crash-loops).
 production:
-  primary: &primary_production
+  primary:
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
   cache:
-    <<: *primary_production
-    database: parboil_production_cache
+    <<: *default
+    url: <%= ENV["DATABASE_URL"]&.sub(%r{/([^/?]+)(?=\?|\z)}, '/\1_cache') %>
     migrations_paths: db/cache_migrate
   queue:
-    <<: *primary_production
-    database: parboil_production_queue
+    <<: *default
+    url: <%= ENV["DATABASE_URL"]&.sub(%r{/([^/?]+)(?=\?|\z)}, '/\1_queue') %>
     migrations_paths: db/queue_migrate
   cable:
-    <<: *primary_production
-    database: parboil_production_cable
+    <<: *default
+    url: <%= ENV["DATABASE_URL"]&.sub(%r{/([^/?]+)(?=\?|\z)}, '/\1_cable') %>
     migrations_paths: db/cable_migrate
