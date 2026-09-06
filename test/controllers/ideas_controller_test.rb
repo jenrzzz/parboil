@@ -9,9 +9,9 @@ class IdeasControllerTest < ActionDispatch::IntegrationTest
 
   test "creates an idea without any LLM call" do
     assert_difference -> { Idea.count } do
-      assert_no_difference -> { LLMUsage.count } do
-        post ideas_path, params: { idea: { seed: "an itch" } }
-      end
+      LLM.client = fake = Hob::Fake.new # no scripted reply: any model call would raise
+      post ideas_path, params: { idea: { seed: "an itch" } }
+      assert_empty fake.calls
     end
     assert_redirected_to idea_path(Idea.last)
     assert Idea.last.seeded?
@@ -60,9 +60,9 @@ class IdeasControllerTest < ActionDispatch::IntegrationTest
   test "stuck without a pending question is a no-op" do
     idea = Idea.create!(seed: "an itch")
     assert_no_difference -> { MessageNode.count } do
-      assert_no_difference -> { LLMUsage.count } do
-        post stuck_idea_path(idea)
-      end
+      LLM.client = fake = Hob::Fake.new # no scripted reply: any model call would raise
+      post stuck_idea_path(idea)
+      assert_empty fake.calls
     end
     assert_redirected_to idea_path(idea)
   end

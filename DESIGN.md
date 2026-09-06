@@ -78,6 +78,12 @@ happens by another method (you, drafting). gem=404, npm=404, pypi=200
     parboil v3, so nothing in parboil v1/v2 waits on hob.
   - Realm: this is public-identity blog work → `personal` clearance (not
     `intimate`).
+  - **2026-09-06: the swap happened.** hob's gateway shipped (hob
+    EXTRACTION.md phase 1) and `LLM::Gateway` is now a handoff to the `hob`
+    gem: ruby_llm, the role→model table, the price table and the local
+    `llm_usages` ledger are gone; `ANTHROPIC_API_KEY` became `HOB_URL` +
+    `HOB_KEY`. Calls carry `operation` and `ref: idea/<id>` for hob's ledger.
+    The persona and the `MessageNode` DAG stay local until phase 2.
 - **Proven patterns to lift**: kat's MessageNode DAG + LLM tool loops (chat
   that emits structured output); feedcurator's tool-call structured output.
 - **Capture channel**: mail-as-input à la KTN (`seed@…` alias on an existing

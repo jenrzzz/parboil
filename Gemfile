@@ -21,9 +21,9 @@ gem "jbuilder"
 gem "haml-rails"          # views
 gem "kaminari"            # pagination
 
-# LLM gateway. parboil calls a hob-shaped internal gateway (LLM::Client),
-# ruby_llm underneath, until hob's real gateway ships. See DESIGN.md.
-gem "ruby_llm"
+# LLM gateway: hob, the household LLM substrate. parboil's LLM::Gateway is a
+# thin handoff to the hob gem (which lives inside the hob repo, clients/ruby).
+gem "hob", git: "https://github.com/jenrzzz/hob", branch: "main", glob: "clients/ruby/*.gemspec"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"

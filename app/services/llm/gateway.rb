@@ -1,36 +1,35 @@
 module LLM
-  # The hob-shaped seam. Callers talk to the gateway in terms of *roles* and
-  # never touch a model ID or a provider API — exactly hob's client contract.
-  # Today it resolves the role locally and calls Anthropic through LLM::Client;
-  # when hob's gateway ships, the swap is replacing this module's internals with
-  # the `hob` gem, leaving every call site untouched.
-  #
-  # Method map to the eventual hob client (see ~/Source/hob/DESIGN.md):
-  #   Gateway.complete(role:, schema:, messages:)  ->  hob.complete(role:, schema:, messages:)
-  #   Gateway.chat(role:, messages:) { |chunk| }   ->  hob.chat(...) { |event| }
+  # The one call shape parboil uses: a role, a system prompt, a user prompt,
+  # and optionally a schema. `operation`, `metadata` and `ref` are ledger
+  # fields hob groups usage on. Every hob error becomes LLM::Error so the
+  # controllers' rescue stays one line.
   module Gateway
     module_function
 
-    # Structured / one-shot completion. With a schema, returns the parsed object
-    # (used for typed-node extraction); without one, returns text. `operation`
-    # labels the call in the usage ledger; defaults to the role name.
-    def complete(role:, messages:, schema: nil, operation: nil, **opts)
-      client_for(role).chat(
-        messages, operation: (operation || role).to_s, role: role, schema: schema, **opts
+    # With a schema, returns the parsed object (string keys); without one,
+    # the reply text.
+    def complete(role:, messages:, system: nil, schema: nil, operation: nil, metadata: {}, ref: nil)
+      completion = LLM.client.complete(
+        role: role.to_s, system: system, messages: normalize(messages), schema: schema,
+        operation: (operation || role).to_s, metadata: metadata, ref: ref, realm: LLM::REALM
       )
+      return completion.content.to_s unless schema
+
+      completion.parsed or raise Error, "no structured content in the reply"
+    rescue Hob::Refused => e
+      raise Error, "the model declined (#{e.message})"
+    rescue Hob::RateLimited => e
+      raise Error, "rate limited: #{e.message}"
+    rescue Hob::Unauthorized => e
+      raise Error, "bad hob key: #{e.message}"
+    rescue Hob::Error => e
+      raise Error, "hob error: #{e.message}"
     end
 
-    # Streaming chat turn (the interview). Yields each text chunk; returns the
-    # full text. The persona/system prompt is assembled by the caller and passed
-    # in `messages` — personas stay local prompt material until hob owns them.
-    def chat(role:, messages:, operation: nil, metadata: {}, &block)
-      client_for(role).chat_stream(
-        messages, operation: (operation || role).to_s, role: role, metadata: metadata, &block
-      )
-    end
-
-    def client_for(role)
-      Client.new(model: LLM.config.model_for(role))
+    # The persona renders one user prompt as a string; a caller may also pass
+    # a messages array through untouched.
+    def normalize(messages)
+      messages.is_a?(String) ? [ { role: "user", content: messages } ] : messages
     end
   end
 end

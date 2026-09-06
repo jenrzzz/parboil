@@ -4,8 +4,8 @@ module Interview
   # and moving the idea's head pointer.
   #
   # Failure posture: the writer's answer is persisted before any LLM call, and
-  # extraction failure never blocks the next question (the ledger records it;
-  # extraction can rerun later). If question generation itself fails, the head
+  # extraction failure never blocks the next question (hob's ledger records
+  # it; extraction can rerun later). If question generation itself fails, the head
   # is left on the answer node and ask_next! resumes from there.
   class Conductor
     class AlreadyStarted < StandardError; end
@@ -24,8 +24,10 @@ module Interview
       question = LLM::Gateway.complete(
         role: :interviewer,
         messages: Persona.opening_prompt(idea),
+        system: Persona::SYSTEM_CORE,
         operation: "interview.open",
-        metadata: { idea_id: idea.id }
+        metadata: { idea_id: idea.id },
+        ref: "idea/#{idea.id}"
       )
       node = append!(role: :interviewer, content: question.strip, parent_hash: nil)
       idea.update!(head_hash: node.content_hash, status: :interviewing)
@@ -60,8 +62,10 @@ module Interview
       question = LLM::Gateway.complete(
         role: :interviewer,
         messages: Persona.next_question_prompt(idea),
+        system: Persona::SYSTEM_CORE,
         operation: "interview.question",
-        metadata: { idea_id: idea.id }
+        metadata: { idea_id: idea.id },
+        ref: "idea/#{idea.id}"
       )
       node = append!(role: :interviewer, content: question.strip, parent_hash: idea.head_hash)
       idea.update!(head_hash: node.content_hash)
@@ -81,8 +85,10 @@ module Interview
       step = LLM::Gateway.complete(
         role: :interviewer,
         messages: Persona.stepping_stone_prompt(idea, depth: stuck_depth),
+        system: Persona::SYSTEM_CORE,
         operation: "interview.step_down",
-        metadata: { idea_id: idea.id }
+        metadata: { idea_id: idea.id },
+        ref: "idea/#{idea.id}"
       )
       node = append!(role: :interviewer, content: step.strip, parent_hash: question.content_hash)
       idea.update!(head_hash: node.content_hash)

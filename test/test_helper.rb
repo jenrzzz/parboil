@@ -10,7 +10,8 @@ module ActiveSupport
     # Setup all fixtures in test/fixtures/*.yml for all tests in alphabetical order.
     fixtures :all
 
-    # Add more helper methods to be used by all tests here...
+    # Tests that inject a Hob::Fake as LLM.client must not leak it.
+    teardown { LLM.client = nil }
 
     # The one LLM seam tests need: Gateway.complete returns a canned reply
     # for the duration of the block. (minitest/mock left core in minitest 6,

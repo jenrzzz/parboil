@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_07_11_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_06_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -41,25 +41,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_07_11_030000) do
     t.datetime "updated_at", null: false
     t.index ["status"], name: "index_ideas_on_status"
     t.index ["updated_at"], name: "index_ideas_on_updated_at"
-  end
-
-  create_table "llm_usages", force: :cascade do |t|
-    t.decimal "cost", precision: 10, scale: 6
-    t.datetime "created_at", null: false
-    t.integer "duration_ms"
-    t.text "error_message"
-    t.integer "input_tokens", default: 0, null: false
-    t.jsonb "metadata", default: {}
-    t.string "model", null: false
-    t.string "operation", null: false
-    t.integer "output_tokens", default: 0, null: false
-    t.text "prompt"
-    t.text "response"
-    t.string "role"
-    t.string "status", null: false
-    t.datetime "updated_at", null: false
-    t.index ["operation", "created_at"], name: "index_llm_usages_on_operation_and_created_at"
-    t.index ["role", "created_at"], name: "index_llm_usages_on_role_and_created_at"
   end
 
   create_table "message_nodes", primary_key: "content_hash", id: { type: :string, limit: 64 }, force: :cascade do |t|

@@ -1,8 +1,8 @@
 module Interview
-  # The interviewer's prompt material — local for now, shaped like a hob
-  # persona (system core + rendering helpers) so it can migrate into hob's
-  # persona system when that ships. See DESIGN.md: the persona stays local
-  # until hob owns personas.
+  # The interviewer's prompt material — still local prompt text, shaped like
+  # a hob persona (system core + rendering helpers). SYSTEM_CORE goes out as
+  # the system prompt; the rendered prompts below are the user turn. Moving
+  # the core into a hob persona row is phase 2 (hob EXTRACTION.md).
   module Persona
     SYSTEM_CORE = <<~PROMPT.freeze
       You are an interviewer helping a writer develop a blog post idea. Your
@@ -23,12 +23,11 @@ module Interview
 
     module_function
 
-    # Render the full prompt for the next-question call: persona + idea state
-    # + transcript, ending with the ask. Single string because the interviewer
+    # Render the user prompt for the next-question call: idea state +
+    # transcript, ending with the ask. Single string because the interviewer
     # is a service call on the transcript, not a resumed chat session.
     def next_question_prompt(idea)
       <<~PROMPT
-        #{SYSTEM_CORE}
         The writer's seed for this post:
         #{idea.seed.strip}
 
@@ -42,7 +41,6 @@ module Interview
 
     def opening_prompt(idea)
       <<~PROMPT
-        #{SYSTEM_CORE}
         The writer's seed for this post:
         #{idea.seed.strip}
 
@@ -60,7 +58,6 @@ module Interview
     # coverage is exactly the wrong moment; stay on this hole.
     def stepping_stone_prompt(idea, depth: 1)
       <<~PROMPT
-        #{SYSTEM_CORE}
         The writer's seed for this post:
         #{idea.seed.strip}
 

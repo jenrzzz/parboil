@@ -63,7 +63,8 @@ module Interview
         schema: SCHEMA,
         messages: prompt(answer_node),
         operation: "interview.extract",
-        metadata: { idea_id: idea.id, answer_hash: answer_node.content_hash }
+        metadata: { idea_id: idea.id, answer_hash: answer_node.content_hash },
+        ref: "idea/#{idea.id}"
       )
       apply(result, answer_node)
     end
