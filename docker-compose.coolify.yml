@@ -15,7 +15,10 @@
 # Dockerfile `# check=error=true` secrets lint, the mise gotcha):
 #   RAILS_MASTER_KEY      — config/master.key (decrypts credentials: secret_key_base)
 #   DATABASE_URL          — postgres://parboil:…@<parboil-db-uuid>:5432/parboil_production
-#   HOB_URL, HOB_KEY      — hob, which runs the interviewer/extractor; without them LLM turns error politely
+#   HOB_URL, HOB_KEY,     — hob, which runs the interviewer/extractor; without them LLM turns error politely.
+#   HOB_ADDR                HOB_ADDR is hob's tailnet address: the client pins the connection to it and keeps
+#                           HOB_URL's name for SNI, so the call never leaves the tailnet. All three are set by
+#                           hob's `hob:provision[parboil,<this app's uuid>]`.
 #   SOLID_QUEUE_IN_PUMA   — set to "1": jobs run inside the web container (no worker yet)
 
 services:
@@ -28,6 +31,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
       HOB_URL: ${HOB_URL}
       HOB_KEY: ${HOB_KEY}
+      HOB_ADDR: ${HOB_ADDR}
       SOLID_QUEUE_IN_PUMA: ${SOLID_QUEUE_IN_PUMA:-1}
     volumes:
       # Active Storage local disk (config/storage.yml :local)
