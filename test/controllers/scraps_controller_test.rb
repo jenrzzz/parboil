@@ -50,6 +50,13 @@ class ScrapsControllerTest < ActionDispatch::IntegrationTest
     assert_match(/must be http/, flash[:alert])
   end
 
+  test "rejects a malformed http-looking url" do
+    assert_no_difference -> { Scrap.count } do
+      post idea_scraps_path(@idea), params: { scrap: { url: "https://example.com\njavascript:alert(1)" } }
+    end
+    assert_match(/must be http/, flash[:alert])
+  end
+
   test "rejects an empty submission" do
     assert_no_difference -> { Scrap.count } do
       post idea_scraps_path(@idea), params: { scrap: { url: "", body: "  " } }

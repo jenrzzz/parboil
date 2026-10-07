@@ -95,13 +95,13 @@ production:
     url: <%= ENV["DATABASE_URL"] %>
   cache:
     <<: *default
-    url: <%= ENV["DATABASE_URL"]&.sub(%r{/([^/?]+)(?=\?|\z)}, '/\1_cache') %>
+    url: <%= ENV["DATABASE_URL"]&.sub(%r{(?<!/)/([^/?]+)(?=\?|\z)}, '/\1_cache') %>
     migrations_paths: db/cache_migrate
   queue:
     <<: *default
-    url: <%= ENV["DATABASE_URL"]&.sub(%r{/([^/?]+)(?=\?|\z)}, '/\1_queue') %>
+    url: <%= ENV["DATABASE_URL"]&.sub(%r{(?<!/)/([^/?]+)(?=\?|\z)}, '/\1_queue') %>
     migrations_paths: db/queue_migrate
   cable:
     <<: *default
-    url: <%= ENV["DATABASE_URL"]&.sub(%r{/([^/?]+)(?=\?|\z)}, '/\1_cable') %>
+    url: <%= ENV["DATABASE_URL"]&.sub(%r{(?<!/)/([^/?]+)(?=\?|\z)}, '/\1_cable') %>
     migrations_paths: db/cable_migrate

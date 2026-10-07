@@ -7,7 +7,8 @@ class Scrap < ApplicationRecord
   enum :kind, { paste: 0, link: 1 }
 
   validates :body, presence: true, if: :paste?
-  validates :url, presence: true, format: { with: %r{\Ahttps?://}i, message: "must be http(s)" }, if: :link?
+  validates :url, presence: true, if: :link?
+  validate :url_must_be_http, if: :link?
 
   scope :ordered, -> { order(:created_at) }
 
@@ -20,9 +21,24 @@ class Scrap < ApplicationRecord
     title.presence || (link? ? host : body.to_s.truncate(60))
   end
 
+  def http_url
+    parsed_http_url&.to_s
+  end
+
   def host
-    URI.parse(url).host&.delete_prefix("www.")
+    parsed_http_url&.host&.delete_prefix("www.") || url
+  end
+
+  private
+
+  def parsed_http_url
+    uri = URI.parse(url.to_s)
+    uri if uri.is_a?(URI::HTTP) && uri.host.present?
   rescue URI::InvalidURIError
-    url
+    nil
+  end
+
+  def url_must_be_http
+    errors.add(:url, "must be http(s)") unless http_url
   end
 end
