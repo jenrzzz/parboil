@@ -46,7 +46,7 @@
       - @idea.scraps.ordered.each do |scrap|
         %li
           - if scrap.link?
-            = link_to scrap.display_title, scrap.url, target: "_blank", rel: "noopener"
+            = link_to scrap.display_title, safe_external_url(scrap), target: "_blank", rel: "noopener"
             %span.host= scrap.host
             - if scrap.unfetched?
               %span.unfetched link only
