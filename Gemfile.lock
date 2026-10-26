@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/jenrzzz/hob
-  revision: b7670af832c10e0eefc72fab994c21630dc5b3b5
+  revision: ac39ee2b7d10546095ad6d70b7e68422f49a1c5b
   branch: main
   glob: clients/ruby/*.gemspec
   specs:
