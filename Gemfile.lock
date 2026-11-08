@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/jenrzzz/hob
-  revision: b7670af832c10e0eefc72fab994c21630dc5b3b5
+  revision: 4df245e6fc84ca5a462969671cc35741b7923195
   branch: main
   glob: clients/ruby/*.gemspec
   specs:
-    hob (0.3.0)
+    hob (0.4.0)
 
 GEM
   remote: https://rubygems.org/
@@ -492,7 +492,7 @@ CHECKSUMS
   globalid (1.4.0) sha256=037f12fbf1d9d7a014d501c2d5c77356fd4ddd96d7a7991d6700bba96706f427
   haml (7.5.1) sha256=91c5843dd85d32042cc6218d2df8c81282403459958aa53caa58fda238adc287
   haml-rails (3.1.0) sha256=4366474d973e4b9d5326cb216f2073150cfeff4c2a3c07fadb49a490ffdf610b
-  hob (0.3.0)
+  hob (0.4.0)
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   image_processing (1.14.0) sha256=754cc169c9c262980889bec6bfd325ed1dafad34f85242b5a07b60af004742fb
   importmap-rails (2.2.3) sha256=7101be2a4dc97cf1558fb8f573a718404c5f6bcfe94f304bf1f39e444feeb16a
